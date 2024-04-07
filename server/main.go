@@ -28,10 +28,18 @@ func (s *server) handleBoard(conn *websocket.Conn) {
 }
 
 type game struct {
-  board []int
-  possibleColors []int
-  usedColors []int
+  board []string
+  possibleColors []string
+  usedColors []string
 } 
+
+func newGame(boardSize int, possibleColors []string) *game {
+  return &game{
+    board: make([]string, boardSize),
+    possibleColors: possibleColors,
+    usedColors: make([]string, len(possibleColors)),
+  }
+}
 
 func main() {
 	const port int = 8080
