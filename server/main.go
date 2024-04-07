@@ -41,6 +41,14 @@ func newGame(boardSize int, possibleColors []string) *game {
   }
 }
 
+func (g *game) mainLoop(s *server) {
+  go func() {
+    for {
+      fmt.Println("xD")
+      time.Sleep(time.Second * 2)
+    }
+  }() 
+}
 
 
 func main() {
@@ -48,10 +56,9 @@ func main() {
   const size int = 64
   possibleColors := []string{"red", "green", "blue"}
 
-  game := newGame(size, possibleColors)
-  fmt.Println(game)
-
 	server := newServer()
+  game := newGame(size, possibleColors)
+  game.mainLoop(server)
 
 	http.Handle("/board", websocket.Handler(server.handleBoard))
 
