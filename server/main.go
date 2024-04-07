@@ -41,8 +41,15 @@ func newGame(boardSize int, possibleColors []string) *game {
   }
 }
 
+
+
 func main() {
 	const port int = 8080
+  const size int = 64
+  possibleColors := []string{"red", "green", "blue"}
+
+  game := newGame(size, possibleColors)
+  fmt.Println(game)
 
 	server := newServer()
 
