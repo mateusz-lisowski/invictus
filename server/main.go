@@ -27,6 +27,12 @@ func (s *server) handleBoard(conn *websocket.Conn) {
 	}
 }
 
+type game struct {
+  board []int
+  possibleColors []int
+  usedColors []int
+} 
+
 func main() {
 	const port int = 8080
 
