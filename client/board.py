@@ -11,8 +11,10 @@ class BoardScreen(Viewer):
 		self.cursor_x = 0
 		self.cursor_y = 0
 		self.cursor_blink = 0
+		self.selected_blink = 0
 
 	def draw(self):
+		self.player.update()
 		self.__updateSize()
 		self.scr.clear()
 
@@ -21,12 +23,15 @@ class BoardScreen(Viewer):
 		self.__draw_cursor()
 
 	def __draw_map(self):
+		selected_blink = (self.selected_blink // 1) % 2
 		for y in range(self.player.board_height):
 			for x in range(self.player.board_width):
 				cell = self.player.board[y * self.player.board_width + x]
 				if (x, y) in self.selected:
-					self.scr.addstr(y + 1, 2 * x + 2, "██", Color.GRAY.as_curses())
-				elif cell != "BLACK":
+					if cell == "BLACK" or selected_blink == 0:
+						self.scr.addstr(y + 1, 2 * x + 2, "██", Color.GRAY.as_curses())
+						continue
+				if cell != "BLACK":
 					self.scr.addstr(y + 1, 2 * x + 2, "██", Color.from_any(cell).as_curses())
 
 	def __draw_cursor(self):
@@ -49,6 +54,10 @@ class BoardScreen(Viewer):
 				self.selected.remove(target)
 			else:
 				self.selected.append(target)
+		elif ch == ord('\n'):
+			if len(self.selected) != 0:
+				self.player.sendMove(self.selected)
+				self.selected = []
 		elif ch == curses.KEY_UP:
 			move_y = -1
 		elif ch == curses.KEY_DOWN:
@@ -59,6 +68,7 @@ class BoardScreen(Viewer):
 			move_x = +1
 		if ch == -1:
 			self.cursor_blink += 1
+		self.selected_blink += 1
 		
 		if move_x != 0 or move_y != 0:
 			self.__moveCursor(self.cursor_y + move_y, self.cursor_x + move_x)

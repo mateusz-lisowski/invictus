@@ -4,5 +4,7 @@
   "height" : 12,
   "uuid": 123,
   "color": "GREEN",
-  "cells": 20
+  "cells": 20,
+  "scores": 2,
+  "success": true
 }

@@ -10,13 +10,14 @@ class Player:
         response = self.__sendRequest("", {"uuid": self.uuid})
         return response['success']
 
+    def update(self):
+        self.__updateScores()
+        self.__updateBoard()
+        self.__updateCells()
+
     def sendMove(self, moves):
         response = self.__sendRequest("", {"board": moves, "uuid": self.uuid})
         return response['success']
-
-    def updateScores(self):
-        response = self.__sendRequest("", {"uuid": self.uuid})
-        self.scores = response['scores']
 
     def __login(self, color):
         response = self.__sendRequest("", {"color": color})
@@ -34,6 +35,10 @@ class Player:
     def __updateCells(self):
         response = self.__sendRequest("", {"uuid": self.uuid})
         self.cells = response['cells']
+
+    def __updateScores(self):
+        response = self.__sendRequest("", {"uuid": self.uuid})
+        self.scores = response['scores']
 
     def __sendRequest(self, url, data):
         #x = requests.post(url, json=data)
