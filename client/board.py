@@ -1,3 +1,4 @@
+from color import *
 from draw import *
 from player import *
 
@@ -6,12 +7,6 @@ class BoardScreen(Viewer):
 		self.player = player
 		super().__init__(owner, self.player.board_height + 2, 2 * self.player.board_width + 4)
 		self.selected = []
-		self.__colors = {
-			"BLACK": curses.color_pair(0),
-			"BLUE": curses.color_pair(1),
-			"GREEN": curses.color_pair(2),
-			"YELLOW": curses.color_pair(6),
-		}
 		curses.halfdelay(1)
 		self.cursor_x = 0
 		self.cursor_y = 0
@@ -30,16 +25,15 @@ class BoardScreen(Viewer):
 			for x in range(self.player.board_width):
 				cell = self.player.board[y * self.player.board_width + x]
 				if (x, y) in self.selected:
-					self.scr.addstr(y + 1, 2 * x + 2, "██")
+					self.scr.addstr(y + 1, 2 * x + 2, "██", Color.GRAY.as_curses())
 				elif cell != "BLACK":
-					color = self.__colors[cell]
-					self.scr.addstr(y + 1, 2 * x + 2, "██", color)
+					self.scr.addstr(y + 1, 2 * x + 2, "██", Color.from_any(cell).as_curses())
 
 	def __draw_cursor(self):
 		cursor_blink = (self.cursor_blink // 4) % 2
 		if cursor_blink == 1:
 			return
-		self.scr.addstr(self.cursor_y + 1, 2 * self.cursor_x + 2, "██")
+		self.scr.addstr(self.cursor_y + 1, 2 * self.cursor_x + 2, "██", Color.WHITE.as_curses())
 
 
 	def handleInput(self, ch):
