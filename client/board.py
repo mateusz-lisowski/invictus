@@ -5,6 +5,7 @@ class BoardScreen(Viewer):
 	def __init__(self, owner, player):
 		self.player = player
 		super().__init__(owner, self.player.board_height + 2, 2 * self.player.board_width + 4)
+		self.selected = []
 		self.__colors = {
 			"BLACK": curses.color_pair(0),
 			"BLUE": curses.color_pair(1),
@@ -28,7 +29,9 @@ class BoardScreen(Viewer):
 		for y in range(self.player.board_height):
 			for x in range(self.player.board_width):
 				cell = self.player.board[y * self.player.board_width + x]
-				if cell != "BLACK":
+				if (x, y) in self.selected:
+					self.scr.addstr(y + 1, 2 * x + 2, "██")
+				elif cell != "BLACK":
 					color = self.__colors[cell]
 					self.scr.addstr(y + 1, 2 * x + 2, "██", color)
 
@@ -46,6 +49,12 @@ class BoardScreen(Viewer):
 		if ch == ord('q'):
 			self.owner.content = None
 			self.owner.closed = True
+		elif ch == ord(' '):
+			target = (self.cursor_x, self.cursor_y)
+			if target in self.selected:
+				self.selected.remove(target)
+			else:
+				self.selected.append(target)
 		elif ch == curses.KEY_UP:
 			move_y = -1
 		elif ch == curses.KEY_DOWN:
