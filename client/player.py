@@ -1,4 +1,5 @@
 import json
+from data import *
 
 class Player:
     def __init__(self, color):
@@ -36,7 +37,7 @@ class Player:
 
     def __sendRequest(self, url, data):
         #x = requests.post(url, json=data)
-        file = open("data.json")
+        file = open(data_path("data.json"))
         x = json.load(file)
         return x
 
