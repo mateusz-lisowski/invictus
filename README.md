@@ -11,6 +11,7 @@ You can achive this task by creating forms found in Game of Life, such as:
 - generators
 - bombs
 - etc.
+
 Thanks to this forms, you can also destroy your enemies by denying them space
 for their own organism.
 
