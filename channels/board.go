@@ -157,6 +157,7 @@ func (b *Board) nextTick() {
 
 func (b *Board) play(outputChannel chan []byte) {
 	for {
+		b.print()
 		b.nextTick()
 		time.Sleep(time.Second)
 		jsonData, err := json.Marshal(b)
