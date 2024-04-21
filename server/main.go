@@ -1,49 +1,83 @@
 package main
 
 import (
-	"flag"
-	"log"
+	"encoding/json"
+	"fmt"
+	"io"
 	"net/http"
-	"time"
+
+	"golang.org/x/net/websocket"
 )
 
-var addr = flag.String("addr", ":8080", "http service address")
+type CellSet struct {
+	Cells []Cell
+	Color Color
+}
 
-func serveHome(w http.ResponseWriter, r *http.Request) {
-	log.Println(r.URL)
-	if r.URL.Path != "/" {
-		http.Error(w, "Not found", http.StatusNotFound)
-		return
+type Server struct {
+	connection     map[*websocket.Conn]bool
+	outputChannel  chan []byte
+	cellSetChannel chan CellSet
+}
+
+func newServer() *Server {
+	return &Server{
+		connection:     make(map[*websocket.Conn]bool),
+		outputChannel:  make(chan []byte),
+		cellSetChannel: make(chan CellSet),
 	}
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
+}
+
+func (s *Server) handleBoard(ws *websocket.Conn) {
+	for {
+		data, ok := <-s.outputChannel
+		if !ok {
+			fmt.Println("Something went wrong while reading from the channel")
+		}
+		ws.Write(data)
 	}
-	http.ServeFile(w, r, "home.html")
+}
+
+func (s *Server) handlePlay(ws *websocket.Conn) {
+	s.connection[ws] = true
+	s.readPump(ws)
+}
+
+func (s *Server) readPump(ws *websocket.Conn) {
+	buffer := make([]byte, 1024)
+	for {
+		length, err := ws.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println("Error while reading from ws: ", err)
+			continue
+		}
+
+		data := buffer[:length]
+		var cellSetData CellSet
+
+		err = json.Unmarshal(data, &cellSetData)
+		if err != nil {
+			fmt.Println("Error unmarshalling data:", err)
+		} else {
+			s.cellSetChannel <- cellSetData
+		}
+
+	}
 }
 
 func main() {
 
-	flag.Parse()
-	hub := newHub()
 	board := newBoard(4, 4)
+	server := newServer()
 
-	go hub.run()
-	go board.play()
+	go board.play(server.outputChannel)
+	go board.setCellsFromChannel(server.cellSetChannel)
 
-	http.HandleFunc("/", serveHome)
-	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
-		serveWs(hub, w, r, board)
-	})
-
-	server := &http.Server{
-		Addr:              *addr,
-		ReadHeaderTimeout: 3 * time.Second,
-	}
-
-	err := server.ListenAndServe()
-	if err != nil {
-		log.Fatal("ListenAndServe: ", err)
-	}
+	http.Handle("/play", websocket.Handler(server.handlePlay))
+	http.Handle("/board", websocket.Handler(server.handleBoard))
+	http.ListenAndServe(":8080", nil)
 
 }
