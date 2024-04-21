@@ -2,32 +2,25 @@ package main
 
 import (
 	"fmt"
-	"math/rand"
-	"time"
 )
 
-func pushRandomValueToChannel(ch chan int) {
-	for {
-		time.Sleep(time.Second)
-		ch <- rand.Intn(100)
-	}
-}
-
-func printFromChannel(ch chan int) {
+func printFromChannel(ch chan []byte) {
 	for {
 		data, ok := <-ch
 		if !ok {
 			fmt.Println("Something went wrong while reading from the channel")
 		}
-		fmt.Println(data)
+		fmt.Println(string(data))
 	}
 }
 
 func main() {
 
-	numbersChannel := make(chan int)
-	go pushRandomValueToChannel(numbersChannel)
-	go printFromChannel(numbersChannel)
+	board := newBoard(4, 4)
+	jsonChannel := make(chan []byte)
+
+	go board.play(jsonChannel)
+	go printFromChannel(jsonChannel)
 
 	for {
 	}
