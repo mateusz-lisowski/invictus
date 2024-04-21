@@ -3,7 +3,13 @@ package main
 import (
 	"fmt"
 	"time"
+
+	"golang.org/x/net/websocket"
 )
+
+type Server struct {
+	connection map[*websocket.Conn]bool
+}
 
 type CellSet struct {
 	cells []Cell
