@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -27,9 +28,10 @@ var upgrader = websocket.Upgrader{
 }
 
 type Client struct {
-	hub  *Hub
-	conn *websocket.Conn
-	send chan []byte
+	hub   *Hub
+	conn  *websocket.Conn
+	send  chan []byte
+	board *Board
 }
 
 func (c *Client) readPump() {
@@ -49,6 +51,19 @@ func (c *Client) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
+
+		// Here player can modify the board state
+		if string(message) == "test" {
+			c.board.setCellsToColor([]Cell{{1, 1}, {2, 1}, {1, 2}, {2, 2}}, Red)
+		}
+
+		// Here game state should be marshaled and broadcasted
+		data, ok := <-c.board.broadcast
+		if !ok {
+			fmt.Println("Error while reading from the broadcast channel")
+		}
+		fmt.Println("Data to send: ", string(data))
+
 		c.hub.broadcast <- message
 	}
 }
@@ -96,14 +111,14 @@ func (c *Client) writePump() {
 	}
 }
 
-func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func serveWs(hub *Hub, w http.ResponseWriter, r *http.Request, board *Board) {
 	conn, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
 		log.Println(err)
 		return
 	}
 
-	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256)}
+	client := &Client{hub: hub, conn: conn, send: make(chan []byte, 256), board: board}
 	client.hub.register <- client
 
 	go client.writePump()
