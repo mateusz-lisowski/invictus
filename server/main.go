@@ -50,7 +50,6 @@ func main() {
 	// }
 
 	board := newBoard(4, 4)
-	// board.setCellsToColor([]Cell{{5, 5}, {6, 5}, {7, 5}, {7, 7}, {6, 8}, {9, 7}}, Red)
 	board.setCellsToColor([]Cell{{1, 1}, {2, 1}, {1, 2}, {2, 2}}, Red)
 	for {
 		board.print()
