@@ -2,18 +2,60 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"net/http"
 	"time"
 
 	"golang.org/x/net/websocket"
 )
 
-type Server struct {
-	connection map[*websocket.Conn]bool
-}
-
 type CellSet struct {
 	cells []Cell
 	color Color
+}
+
+type Server struct {
+	connection     map[*websocket.Conn]bool
+	outputChannel  chan []byte
+	cellSetChannel chan CellSet
+}
+
+func newServer() *Server {
+	return &Server{
+		connection:     make(map[*websocket.Conn]bool),
+		outputChannel:  make(chan []byte),
+		cellSetChannel: make(chan CellSet),
+	}
+}
+
+func (s *Server) handleBoard(ws *websocket.Conn) {
+	for {
+		data, ok := <-s.outputChannel
+		if !ok {
+			fmt.Println("Something went wrong while reading from the channel")
+		}
+		ws.Write(data)
+	}
+}
+
+func (s *Server) handlePlay(ws *websocket.Conn) {
+	s.connection[ws] = true
+	s.readPump(ws)
+}
+
+func (s *Server) readPump(ws *websocket.Conn) {
+	buffer := make([]byte, 1024)
+	for {
+		length, err := ws.Read(buffer)
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			fmt.Println("Error while reading from ws: ", err)
+		}
+		data := buffer[:length]
+		fmt.Println(string(data))
+	}
 }
 
 func pushChangeToChannel(ch chan CellSet) {
@@ -24,29 +66,17 @@ func pushChangeToChannel(ch chan CellSet) {
 	}
 }
 
-func printFromChannel(ch chan []byte) {
-	for {
-		data, ok := <-ch
-		if !ok {
-			fmt.Println("Something went wrong while reading from the channel")
-		}
-		fmt.Println(string(data))
-	}
-}
-
 func main() {
 
 	board := newBoard(4, 4)
+	server := newServer()
 
-	outputChannel := make(chan []byte)
-	cellSetChannel := make(chan CellSet)
+	go board.play(server.outputChannel)
+	go board.setCellsFromChannel(server.cellSetChannel)
+	go pushChangeToChannel(server.cellSetChannel)
 
-	go board.play(outputChannel)
-	go printFromChannel(outputChannel)
-	go board.setCellsFromChannel(cellSetChannel)
-	go pushChangeToChannel(cellSetChannel)
-
-	for {
-	}
+	http.Handle("/play", websocket.Handler(server.handlePlay))
+	http.Handle("/board", websocket.Handler(server.handleBoard))
+	http.ListenAndServe(":8080", nil)
 
 }
