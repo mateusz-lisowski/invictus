@@ -157,7 +157,6 @@ func (b *Board) nextTick() {
 
 func (b *Board) play(outputChannel chan []byte) {
 	for {
-		b.print()
 		b.nextTick()
 		time.Sleep(time.Second)
 		jsonData, err := json.Marshal(b)
@@ -174,6 +173,6 @@ func (b *Board) setCellsFromChannel(cellSet chan CellSet) {
 		if !ok {
 			fmt.Println("Something went wrong while reading from the channel")
 		}
-		b.setCellsToColor(data.cells, data.color)
+		b.setCellsToColor(data.Cells, data.Color)
 	}
 }

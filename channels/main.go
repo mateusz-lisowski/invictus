@@ -1,17 +1,17 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
-	"time"
 
 	"golang.org/x/net/websocket"
 )
 
 type CellSet struct {
-	cells []Cell
-	color Color
+	Cells []Cell
+	Color Color
 }
 
 type Server struct {
@@ -52,17 +52,19 @@ func (s *Server) readPump(ws *websocket.Conn) {
 				break
 			}
 			fmt.Println("Error while reading from ws: ", err)
+			continue
 		}
-		data := buffer[:length]
-		fmt.Println(string(data))
-	}
-}
 
-func pushChangeToChannel(ch chan CellSet) {
-	for {
-		time.Sleep(time.Second * 1)
-		cellSet := CellSet{[]Cell{{1, 1}, {1, 2}, {2, 1}, {2, 2}}, Red}
-		ch <- cellSet
+		data := buffer[:length]
+		var cellSetData CellSet
+
+		err = json.Unmarshal(data, &cellSetData)
+		if err != nil {
+			fmt.Println("Error unmarshalling data:", err)
+		} else {
+			s.cellSetChannel <- cellSetData
+		}
+
 	}
 }
 
@@ -73,7 +75,6 @@ func main() {
 
 	go board.play(server.outputChannel)
 	go board.setCellsFromChannel(server.cellSetChannel)
-	go pushChangeToChannel(server.cellSetChannel)
 
 	http.Handle("/play", websocket.Handler(server.handlePlay))
 	http.Handle("/board", websocket.Handler(server.handleBoard))
