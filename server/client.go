@@ -51,19 +51,15 @@ func (c *Client) readPump() {
 			break
 		}
 		message = bytes.TrimSpace(bytes.Replace(message, newline, space, -1))
-
 		// Here player can modify the board state
-		if string(message) == "test" {
-			c.board.setCellsToColor([]Cell{{1, 1}, {2, 1}, {1, 2}, {2, 2}}, Red)
+		select {
+		case data, ok := <-c.board.broadcast:
+			if !ok {
+				fmt.Println("Error while reading from the broadcast channel")
+			}
+			fmt.Println("Data to send: ", string(data))
 		}
-
 		// Here game state should be marshaled and broadcasted
-		data, ok := <-c.board.broadcast
-		if !ok {
-			fmt.Println("Error while reading from the broadcast channel")
-		}
-		fmt.Println("Data to send: ", string(data))
-
 		c.hub.broadcast <- message
 	}
 }

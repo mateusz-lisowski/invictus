@@ -1,9 +1,11 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"log"
 	"sync"
+	"time"
 )
 
 type Color int
@@ -19,10 +21,11 @@ const (
 )
 
 type Board struct {
-	width   int
-	height  int
-	Content [][]Color
-	mutex   sync.Mutex
+	width     int
+	height    int
+	Content   [][]Color
+	mutex     sync.Mutex
+	broadcast chan []byte
 }
 
 func newBoard(h int, w int) *Board {
@@ -151,4 +154,18 @@ func (b *Board) nextTick() {
 	}
 
 	b.Content = newContent
+}
+
+func (b *Board) play() []byte {
+	for {
+		b.print()
+		b.nextTick()
+		time.Sleep(time.Second)
+		jsonData, err := json.Marshal(b)
+		if err != nil {
+			fmt.Println("Error:", err)
+		}
+		fmt.Println(string(jsonData))
+		b.broadcast <- jsonData
+	}
 }
