@@ -21,7 +21,7 @@ const (
 type Board struct {
 	width   int
 	height  int
-	content [][]Color
+	Content [][]Color
 	mutex   sync.Mutex
 }
 
@@ -30,12 +30,12 @@ func newBoard(h int, w int) *Board {
 	board.width = w
 	board.height = h
 
-	board.content = make([][]Color, h)
+	board.Content = make([][]Color, h)
 
-	for i := range board.content {
-		board.content[i] = make([]Color, w)
-		for j := range board.content[i] {
-			board.content[i][j] = Black
+	for i := range board.Content {
+		board.Content[i] = make([]Color, w)
+		for j := range board.Content[i] {
+			board.Content[i][j] = Black
 		}
 	}
 
@@ -58,12 +58,12 @@ func (b *Board) setCellsToColor(cells []Cell, color Color) {
 
 	for _, cell := range cells {
 		b.assertIfOutofBounds(cell)
-		b.content[cell.Y][cell.X] = color
+		b.Content[cell.Y][cell.X] = color
 	}
 }
 
 func (b *Board) print() {
-	for _, row := range b.content {
+	for _, row := range b.Content {
 		for _, cell := range row {
 			fmt.Print(cell, " ")
 		}
@@ -80,7 +80,7 @@ func (b *Board) cellIsInBounds(cell Cell) bool {
 
 func (b *Board) colorOfCell(cell Cell) Color {
 	b.assertIfOutofBounds(cell)
-	return b.content[cell.Y][cell.X]
+	return b.Content[cell.Y][cell.X]
 }
 
 func (b *Board) futureColorOfCell(cell Cell) Color {
@@ -150,5 +150,5 @@ func (b *Board) nextTick() {
 		}
 	}
 
-	b.content = newContent
+	b.Content = newContent
 }

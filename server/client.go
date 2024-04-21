@@ -1,6 +1,5 @@
 package main
 
-
 import (
 	"bytes"
 	"log"
@@ -10,11 +9,10 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-
 const (
-	writeWait = 10 * time.Second
-	pongWait = 60 * time.Second
-	pingPeriod = (pongWait * 9) / 10
+	writeWait      = 10 * time.Second
+	pongWait       = 60 * time.Second
+	pingPeriod     = (pongWait * 9) / 10
 	maxMessageSize = 512
 )
 
@@ -28,9 +26,8 @@ var upgrader = websocket.Upgrader{
 	WriteBufferSize: 1024,
 }
 
-
 type Client struct {
-	hub *Hub
+	hub  *Hub
 	conn *websocket.Conn
 	send chan []byte
 }
@@ -58,7 +55,7 @@ func (c *Client) readPump() {
 
 func (c *Client) writePump() {
 	ticker := time.NewTicker(pingPeriod)
-  
+
 	defer func() {
 		ticker.Stop()
 		c.conn.Close()
