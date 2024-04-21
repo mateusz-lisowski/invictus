@@ -166,3 +166,13 @@ func (b *Board) play(outputChannel chan []byte) {
 		outputChannel <- jsonData
 	}
 }
+
+func (b *Board) setCellsFromChannel(cellSet chan CellSet) {
+	for {
+		data, ok := <-cellSet
+		if !ok {
+			fmt.Println("Something went wrong while reading from the channel")
+		}
+		b.setCellsToColor(data.cells, data.color)
+	}
+}

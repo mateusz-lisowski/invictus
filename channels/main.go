@@ -2,7 +2,21 @@ package main
 
 import (
 	"fmt"
+	"time"
 )
+
+type CellSet struct {
+	cells []Cell
+	color Color
+}
+
+func pushChangeToChannel(ch chan CellSet) {
+	for {
+		time.Sleep(time.Second * 1)
+		cellSet := CellSet{[]Cell{{1, 1}, {1, 2}, {2, 1}, {2, 2}}, Red}
+		ch <- cellSet
+	}
+}
 
 func printFromChannel(ch chan []byte) {
 	for {
@@ -17,10 +31,14 @@ func printFromChannel(ch chan []byte) {
 func main() {
 
 	board := newBoard(4, 4)
-	jsonChannel := make(chan []byte)
 
-	go board.play(jsonChannel)
-	go printFromChannel(jsonChannel)
+	outputChannel := make(chan []byte)
+	cellSetChannel := make(chan CellSet)
+
+	go board.play(outputChannel)
+	go printFromChannel(outputChannel)
+	go board.setCellsFromChannel(cellSetChannel)
+	go pushChangeToChannel(cellSetChannel)
 
 	for {
 	}
