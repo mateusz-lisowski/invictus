@@ -10,8 +10,8 @@ import (
 )
 
 type CellSet struct {
-	Cells []Cell
-	Color Color
+	Cells []Cell `json:"cells"`
+	Color Color  `json:"color"`
 }
 
 type Server struct {

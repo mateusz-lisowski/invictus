@@ -23,7 +23,7 @@ const (
 type Board struct {
 	width   int
 	height  int
-	Content [][]Color
+	Content [][]Color `json:"board"`
 	mutex   sync.Mutex
 }
 
