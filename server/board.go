@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"sync"
@@ -157,6 +158,7 @@ func (b *Board) nextTick() {
 
 func (b *Board) play(outputChannel chan []byte) {
 	for {
+		b.print()
 		b.nextTick()
 		time.Sleep(time.Second)
 		jsonData, err := json.Marshal(b)
@@ -175,4 +177,26 @@ func (b *Board) setCellsFromChannel(cellSet chan CellSet) {
 		}
 		b.setCellsToColor(data.Cells, data.Color)
 	}
+}
+
+func (b *Board) getFreeColor() (Color, error) {
+
+	possibleColors := []Color{Red, Green, Blue, Orange, Yellow, White}
+
+	for _, row := range b.Content {
+		for _, cell := range row {
+			for index, currColor := range possibleColors {
+				if cell == currColor {
+					possibleColors = append(possibleColors[:index], possibleColors[index+1:]...)
+					break
+				}
+			}
+		}
+	}
+
+	if len(possibleColors) >= 1 {
+		return possibleColors[0], nil
+	}
+
+	return 0, errors.New("no free colors aviable")
 }

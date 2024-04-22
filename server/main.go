@@ -18,14 +18,24 @@ type Server struct {
 	connection     map[*websocket.Conn]bool
 	outputChannel  chan []byte
 	cellSetChannel chan CellSet
+	board          *Board
 }
 
-func newServer() *Server {
+func newServer(b *Board) *Server {
 	return &Server{
 		connection:     make(map[*websocket.Conn]bool),
 		outputChannel:  make(chan []byte),
 		cellSetChannel: make(chan CellSet),
+		board:          b,
 	}
+}
+
+func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
+	freeColor, err := s.board.getFreeColor()
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Fprint(w, freeColor)
 }
 
 func (s *Server) handleBoard(ws *websocket.Conn) {
@@ -71,13 +81,18 @@ func (s *Server) readPump(ws *websocket.Conn) {
 func main() {
 
 	board := newBoard(4, 4)
-	server := newServer()
+	server := newServer(board)
+
+	mux := http.NewServeMux()
 
 	go board.play(server.outputChannel)
 	go board.setCellsFromChannel(server.cellSetChannel)
 
-	http.Handle("/play", websocket.Handler(server.handlePlay))
-	http.Handle("/board", websocket.Handler(server.handleBoard))
-	http.ListenAndServe(":8080", nil)
+	mux.Handle("/play", websocket.Handler(server.handlePlay))
+	mux.Handle("/board", websocket.Handler(server.handleBoard))
+
+	mux.HandleFunc("GET /register", server.handleRegister)
+
+	http.ListenAndServe(":8080", mux)
 
 }
