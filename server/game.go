@@ -32,6 +32,7 @@ type Board struct {
 	height  int
 	Content [][]Color `json:"board"`
 	mutex   sync.Mutex
+	players []Player
 }
 
 func newBoard(h int, w int) *Board {
@@ -201,7 +202,9 @@ func (b *Board) getFreeColor() (Color, error) {
 	}
 
 	if len(possibleColors) >= 1 {
-		return possibleColors[0], nil
+		choosenColor := possibleColors[0]
+		b.players = append(b.players, Player{Color: choosenColor, CellsCount: 0, Score: 0})
+		return choosenColor, nil
 	}
 
 	return 0, errors.New("no free colors aviable")
