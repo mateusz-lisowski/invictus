@@ -211,3 +211,11 @@ func (b *Board) getFreeColor() (Color, error) {
 
 	return 0, errors.New("no free colors aviable")
 }
+
+func (b *Board) getPlayerScore() int {
+	return 0
+}
+
+func (b *Board) getPlayerCellsNumber() int {
+	return 0
+}
