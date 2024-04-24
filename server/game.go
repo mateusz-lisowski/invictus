@@ -193,15 +193,14 @@ func (b *Board) getFreeColor() (Color, error) {
 
 	possibleColors := []Color{Red, Green, Blue, Orange, Yellow, White}
 
-	for _, row := range b.Content {
-		for _, cell := range row {
-			for index, currColor := range possibleColors {
-				if cell == currColor {
-					possibleColors = append(possibleColors[:index], possibleColors[index+1:]...)
-					break
-				}
+	for _, player := range b.Players {
+		newColors := []Color{}
+		for _, c := range possibleColors {
+			if c != player.Color {
+				newColors = append(newColors, c)
 			}
 		}
+		possibleColors = newColors
 	}
 
 	if len(possibleColors) >= 1 {
