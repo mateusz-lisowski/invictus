@@ -21,6 +21,12 @@ const (
 	Black  Color = 0x000000
 )
 
+type Player struct {
+	Color      Color `json:"color"`
+	CellsCount int   `json:"cells"`
+	Score      int   `json:"score"`
+}
+
 type Board struct {
 	width   int
 	height  int
