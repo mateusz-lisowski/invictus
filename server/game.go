@@ -12,13 +12,13 @@ import (
 type Color int
 
 const (
-	Red    Color = 0xFF0000
-	Green  Color = 0x00FF00
-	Blue   Color = 0xFF0000
-	Yellow Color = 0xFFFF00
-	Orange Color = 0xFFA500
-	White  Color = 0xFFFFFF
-	Black  Color = 0x000000
+	Blue    Color = 1
+	Green   Color = 2
+	Cyan    Color = 3
+	Red     Color = 4
+	Magenta Color = 5
+	Yellow  Color = 6
+	Black   Color = 0
 )
 
 type Player struct {
@@ -191,7 +191,7 @@ func (b *Board) setCellsFromChannel(cellSet chan CellSet) {
 
 func (b *Board) getFreeColor() (Color, error) {
 
-	possibleColors := []Color{Red, Green, Blue, Orange, Yellow, White}
+	possibleColors := []Color{Blue, Green, Cyan, Red, Magenta, Yellow}
 
 	for _, player := range b.Players {
 		newColors := []Color{}
