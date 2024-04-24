@@ -163,7 +163,7 @@ func (b *Board) nextTick() {
 	b.Content = newContent
 }
 
-func (b *Board) play(outputChannel chan []byte) {
+func (b *Board) play(boardChannel chan []byte, playersChannel chan []byte) {
 	for {
 		b.print()
 		b.nextTick()
@@ -172,7 +172,7 @@ func (b *Board) play(outputChannel chan []byte) {
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-		outputChannel <- jsonData
+		boardChannel <- jsonData
 	}
 }
 
