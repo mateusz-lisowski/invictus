@@ -16,8 +16,7 @@ type CellSet struct {
 
 type Server struct {
 	connection     map[*websocket.Conn]bool
-	boardChannel   chan []byte
-	playersChannel chan []byte
+	gameChannel    chan []byte
 	cellSetChannel chan CellSet
 	board          *Board
 }
@@ -25,8 +24,7 @@ type Server struct {
 func newServer(b *Board) *Server {
 	return &Server{
 		connection:     make(map[*websocket.Conn]bool),
-		boardChannel:   make(chan []byte),
-		playersChannel: make(chan []byte),
+		gameChannel:    make(chan []byte),
 		cellSetChannel: make(chan CellSet),
 		board:          b,
 	}
@@ -42,7 +40,7 @@ func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleBoard(ws *websocket.Conn) {
 	for {
-		data, ok := <-s.boardChannel
+		data, ok := <-s.gameChannel
 		if !ok {
 			fmt.Println("Something went wrong while reading from the channel")
 		}
@@ -53,10 +51,6 @@ func (s *Server) handleBoard(ws *websocket.Conn) {
 func (s *Server) handlePlay(ws *websocket.Conn) {
 	s.connection[ws] = true
 	s.readPump(ws)
-}
-
-func (s *Server) handlePlayers(ws *websocket.Conn) {
-
 }
 
 func (s *Server) readPump(ws *websocket.Conn) {
@@ -91,12 +85,11 @@ func main() {
 
 	mux := http.NewServeMux()
 
-	go board.play(server.boardChannel, server.playersChannel)
+	go board.play(server.gameChannel)
 	go board.setCellsFromChannel(server.cellSetChannel)
 
 	mux.Handle("/play", websocket.Handler(server.handlePlay))
-	mux.Handle("/board", websocket.Handler(server.handleBoard))
-	mux.Handle("/players", websocket.Handler(server.handlePlayers))
+	mux.Handle("/game", websocket.Handler(server.handleBoard))
 
 	mux.HandleFunc("GET /register", server.handleRegister)
 

@@ -32,7 +32,7 @@ type Board struct {
 	height  int
 	Content [][]Color `json:"board"`
 	mutex   sync.Mutex
-	players []Player
+	Players []Player `json:"players"`
 }
 
 func newBoard(h int, w int) *Board {
@@ -163,16 +163,19 @@ func (b *Board) nextTick() {
 	b.Content = newContent
 }
 
-func (b *Board) play(boardChannel chan []byte, playersChannel chan []byte) {
+func (b *Board) play(boardChannel chan []byte) {
 	for {
+
 		b.print()
 		b.nextTick()
 		time.Sleep(time.Second)
-		jsonData, err := json.Marshal(b)
+
+		jsonBoard, err := json.Marshal(b)
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
-		boardChannel <- jsonData
+		boardChannel <- jsonBoard
+
 	}
 }
 
@@ -203,7 +206,7 @@ func (b *Board) getFreeColor() (Color, error) {
 
 	if len(possibleColors) >= 1 {
 		choosenColor := possibleColors[0]
-		b.players = append(b.players, Player{Color: choosenColor, CellsCount: 0, Score: 0})
+		b.Players = append(b.Players, Player{Color: choosenColor, CellsCount: 0, Score: 0})
 		return choosenColor, nil
 	}
 
