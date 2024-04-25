@@ -64,6 +64,21 @@ func (b *Board) assertIfOutofBounds(cell Cell) {
 
 func (b *Board) setCellsToColor(cells []Cell, color Color) {
 
+	// TODO: 1) Add cells validation (now you can overwrite other player's cells)
+	// TODO: 2) assertOutOfBounds should return an error and stop function before setting anything
+
+	var currentPlayer *Player
+	for index := range b.Players {
+		if b.Players[index].Color == color {
+			currentPlayer = &b.Players[index]
+		}
+	}
+
+	if len(cells) > currentPlayer.CellsCount {
+		log.Fatal("Too little cells")
+		return
+	}
+
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -71,6 +86,8 @@ func (b *Board) setCellsToColor(cells []Cell, color Color) {
 		b.assertIfOutofBounds(cell)
 		b.Content[cell.Y][cell.X] = color
 	}
+
+	currentPlayer.CellsCount -= len(cells)
 }
 
 func (b *Board) print() {
