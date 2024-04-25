@@ -63,6 +63,7 @@ func (b *Board) assertIfOutofBounds(cell Cell) {
 }
 
 func (b *Board) setCellsToColor(cells []Cell, color Color) {
+
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
@@ -168,6 +169,7 @@ func (b *Board) play(boardChannel chan []byte) {
 
 		b.print()
 		b.nextTick()
+		b.nextPlayersData()
 		time.Sleep(time.Second)
 
 		jsonBoard, err := json.Marshal(b)
@@ -212,10 +214,16 @@ func (b *Board) getFreeColor() (Color, error) {
 	return 0, errors.New("no free colors aviable")
 }
 
-func (b *Board) getPlayersScore() int {
-	return 0
-}
-
-func (b *Board) getPlayersCellsNumber() int {
-	return 0
+func (b *Board) nextPlayersData() {
+	for index := range b.Players {
+		b.Players[index].Score = 0
+		for _, row := range b.Content {
+			for _, cell := range row {
+				if b.Players[index].Color == cell {
+					b.Players[index].Score++
+					b.Players[index].CellsCount++
+				}
+			}
+		}
+	}
 }
