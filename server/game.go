@@ -93,7 +93,8 @@ func newClientUpdate(b *Board, uuid uuid.UUID) *ClientUpdate {
 }
 
 type Cell struct {
-	X, Y int
+	X int `json:"X"` 
+	Y int `json:"Y"`
 }
 
 func (b *Board) assertIfOutofBounds(cell Cell) error {
@@ -265,7 +266,7 @@ func (b *Board) setCellsFromChannel(cellSet chan CellSet) {
 	}
 }
 
-func (b *Board) getFreeColor() (Color, error) {
+func (b *Board) getFreeColor(uuid uuid.UUID) (Color, error) {
 
 	possibleColors := []Color{Blue, Green, Cyan, Red, Magenta, Yellow}
 
@@ -281,7 +282,7 @@ func (b *Board) getFreeColor() (Color, error) {
 
 	if len(possibleColors) >= 1 {
 		choosenColor := possibleColors[0]
-		b.Players = append(b.Players, Player{Color: choosenColor, CellsCount: 0, Score: 0})
+		b.Players = append(b.Players, Player{Color: choosenColor, CellsCount: 0, Score: 0, UUID: uuid})
 		return choosenColor, nil
 	}
 

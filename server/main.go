@@ -32,11 +32,19 @@ func newServer(b *Board) *Server {
 }
 
 func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
-	freeColor, err := s.board.getFreeColor()
+	uuid := uuid.New()
+	freeColor, err := s.board.getFreeColor(uuid)
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Fprint(w, freeColor)
+	
+	data := map[string]interface{}{
+		"color":    freeColor,
+		"uuid":   uuid.String(),
+	}
+
+	jsonData, err := json.Marshal(data)
+	fmt.Fprintf(w, "%s", jsonData)
 }
 
 func (s *Server) handleBoard(ws *websocket.Conn) {
