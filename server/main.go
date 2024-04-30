@@ -7,11 +7,12 @@ import (
 	"net/http"
 
 	"golang.org/x/net/websocket"
+	"github.com/google/uuid"
 )
 
 type CellSet struct {
-	Cells []Cell `json:"cells"`
-	Color Color  `json:"color"`
+	Cells []Cell 	 `json:"cells"`
+	UUID  uuid.UUID  `json:"uuid"`
 }
 
 type Server struct {

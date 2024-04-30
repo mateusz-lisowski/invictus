@@ -7,6 +7,7 @@ import (
 	"log"
 	"sync"
 	"time"
+	"github.com/google/uuid"
 )
 
 type Color int
@@ -21,15 +22,25 @@ const (
 	Black   Color = 0
 )
 
+type ClientUpdate struct {
+	Color		Color 		`json:"color"`
+	CellsCount 	int 		`json:"cells"`
+	Score		int			`json:"score"`
+	Width 		int			`json:"width"`
+	Height 		int			`json:"height"`
+	Content		[][]Color 	`json:"board"`
+}
+
 type Player struct {
 	Color      Color `json:"color"`
 	CellsCount int   `json:"cells"`
 	Score      int   `json:"score"`
+	UUID 	   uuid.UUID
 }
 
 type Board struct {
-	width   int
-	height  int
+	Width   int
+	Height  int
 	Content [][]Color `json:"board"`
 	mutex   sync.Mutex
 	Players []Player `json:"players"`
@@ -37,8 +48,8 @@ type Board struct {
 
 func newBoard(h int, w int) *Board {
 	board := new(Board)
-	board.width = w
-	board.height = h
+	board.Width = w
+	board.Height = h
 
 	board.Content = make([][]Color, h)
 
@@ -52,42 +63,83 @@ func newBoard(h int, w int) *Board {
 	return board
 }
 
+
+func (b *Board) playerWithUUID(uuid uuid.UUID) *Player {
+	var player *Player = nil
+	for index := range b.Players {
+		if b.Players[index].UUID == uuid {
+			player = &b.Players[index]
+		}
+	}
+	return player
+}
+
+
+func newClientUpdate(b *Board, uuid uuid.UUID) *ClientUpdate {
+	update := new(ClientUpdate)
+	update.Width = b.Width
+	update.Height = b.Height
+	update.Content = b.Content
+
+	var player = b.playerWithUUID(uuid);
+	if (player == nil) {
+		return nil
+	}
+
+	update.Score = player.Score
+	update.CellsCount = player.CellsCount
+	update.Color = player.Color
+	return update
+}
+
 type Cell struct {
 	X, Y int
 }
 
-func (b *Board) assertIfOutofBounds(cell Cell) {
+func (b *Board) assertIfOutofBounds(cell Cell) error {
 	if !b.cellIsInBounds(cell) {
 		log.Fatalf("Error: Program stopped: (Cell out of bounds %d %d)", cell.X, cell.Y)
+		return errors.New("Cell out of bounds")
 	}
+	return nil
 }
 
-func (b *Board) setCellsToColor(cells []Cell, color Color) {
+func (b *Board) setCellsToColor(cells []Cell, uuid uuid.UUID) error {
 
 	// TODO: 1) Add cells validation (now you can overwrite other player's cells)
 	// TODO: 2) assertOutOfBounds should return an error and stop function before setting anything
 
-	var currentPlayer *Player
-	for index := range b.Players {
-		if b.Players[index].Color == color {
-			currentPlayer = &b.Players[index]
-		}
+	currentPlayer := b.playerWithUUID(uuid)
+	if (currentPlayer == nil) {
+		return errors.New("Player not found");
 	}
 
+	color := currentPlayer.Color
+
 	if len(cells) > currentPlayer.CellsCount {
-		log.Fatal("Too little cells")
-		return
+		log.Fatalf("Error: Too little cells for player: %s", uuid.String())
+		return errors.New("Too little cells")
 	}
 
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
 	for _, cell := range cells {
-		b.assertIfOutofBounds(cell)
-		b.Content[cell.Y][cell.X] = color
+		err := b.assertIfOutofBounds(cell)
+		if (err != nil) {
+			return err
+		}
+		if (b.Content[cell.Y][cell.X] != Black) {
+			log.Fatalf("Error: Cell to set is occupied: X:%d Y:%d", cell.X, cell.Y)
+			return errors.New("Cell to set is occupied")
+		}
 	}
 
+	for _, cell := range cells {
+		b.Content[cell.Y][cell.X] = color
+	}
 	currentPlayer.CellsCount -= len(cells)
+	return nil
 }
 
 func (b *Board) print() {
@@ -100,20 +152,25 @@ func (b *Board) print() {
 }
 
 func (b *Board) cellIsInBounds(cell Cell) bool {
-	if cell.X < 0 || cell.X >= b.width || cell.Y < 0 || cell.Y >= b.height {
+	if cell.X < 0 || cell.X >= b.Width || cell.Y < 0 || cell.Y >= b.Height {
 		return false
 	}
 	return true
 }
 
 func (b *Board) colorOfCell(cell Cell) Color {
-	b.assertIfOutofBounds(cell)
+	err := b.assertIfOutofBounds(cell)
+	if (err != nil) {
+		return 0
+	}
 	return b.Content[cell.Y][cell.X]
 }
 
 func (b *Board) futureColorOfCell(cell Cell) Color {
-	b.assertIfOutofBounds(cell)
-
+	err := b.assertIfOutofBounds(cell)
+	if (err != nil) {
+		return 0
+	}
 	neighborCells := []Cell{
 		{cell.X + 1, cell.Y + 1},
 		{cell.X + 1, cell.Y + 0},
@@ -169,10 +226,10 @@ func (b *Board) nextTick() {
 	b.mutex.Lock()
 	defer b.mutex.Unlock()
 
-	newContent := make([][]Color, b.height)
+	newContent := make([][]Color, b.Height)
 
 	for i := range newContent {
-		newContent[i] = make([]Color, b.width)
+		newContent[i] = make([]Color, b.Width)
 		for j := range newContent[i] {
 			newContent[i][j] = b.futureColorOfCell(Cell{X: j, Y: i})
 		}
@@ -204,7 +261,7 @@ func (b *Board) setCellsFromChannel(cellSet chan CellSet) {
 		if !ok {
 			fmt.Println("Something went wrong while reading from the channel")
 		}
-		b.setCellsToColor(data.Cells, data.Color)
+		b.setCellsToColor(data.Cells, data.UUID)
 	}
 }
 
