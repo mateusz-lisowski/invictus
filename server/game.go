@@ -118,7 +118,7 @@ func (b *Board) setCellsToColor(cells []Cell, uuid uuid.UUID) error {
 	color := currentPlayer.Color
 
 	if len(cells) > currentPlayer.CellsCount {
-		log.Fatalf("Error: Too little cells for player: %s", uuid.String())
+		log.Printf("Error: Too little cells for player: %s", uuid.String())
 		return errors.New("Too little cells")
 	}
 
@@ -291,12 +291,13 @@ func (b *Board) getFreeColor(uuid uuid.UUID) (Color, error) {
 
 func (b *Board) nextPlayersData() {
 	for index := range b.Players {
+		b.Players[index].CellsCount += 1
 		b.Players[index].Score = 0
 		for _, row := range b.Content {
 			for _, cell := range row {
 				if b.Players[index].Color == cell {
 					b.Players[index].Score++
-					b.Players[index].CellsCount++
+					
 				}
 			}
 		}
