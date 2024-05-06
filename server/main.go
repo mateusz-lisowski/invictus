@@ -89,7 +89,7 @@ func (s *Server) readPump(ws *websocket.Conn) {
 
 func main() {
 
-	board := newBoard(4, 4)
+	board := newBoard(16, 16)
 	server := newServer(board)
 
 	mux := http.NewServeMux()
