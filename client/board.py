@@ -14,7 +14,6 @@ class BoardScreen(Viewer):
 		self.selected_blink = 0
 
 	def draw(self):
-		#self.player.update()
 		self.__updateSize()
 		self.scr.clear()
 
@@ -28,12 +27,11 @@ class BoardScreen(Viewer):
 			for x in range(self.player.board_width):
 				cell = self.player.board[y][x]
 				if (x, y) in self.selected:
-					if cell == "BLACK" or selected_blink == 0:
+					if cell == 0 or selected_blink == 0:
 						self.scr.addstr(y + 1, 2 * x + 2, "██", Color.GRAY.as_curses())
 						continue
 				if cell != 0:
-					tab = ["BLUE", "YELLOW", "GREEN"]
-					self.scr.addstr(y + 1, 2 * x + 2, "██", Color.from_any(tab[cell-1]).as_curses())
+					self.scr.addstr(y + 1, 2 * x + 2, "██", Color.from_any(cell).lighten().as_curses())
 
 	def __draw_cursor(self):
 		cursor_blink = (self.cursor_blink // 4) % 2

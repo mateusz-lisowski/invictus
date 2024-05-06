@@ -2,6 +2,7 @@ from board import *
 from color import *
 from draw import *
 from player import *
+import threading
 
 invictus_string = '''
   _____            _      _             
@@ -21,6 +22,9 @@ class LoadingScreen(Viewer):
 
 		curses.halfdelay(5)
 
+		self.load_thread = threading.Thread(target=self.__load)
+		self.load_thread.start()
+
 	def draw(self):
 		self.scr.clear()
 		self.scr.addstr(0, 0, "Loading" + ("." * (self.counter % 4)))
@@ -28,8 +32,14 @@ class LoadingScreen(Viewer):
 	def handleInput(self, ch):
 		if ch == -1:
 			self.counter += 1
-		if self.counter > 4:
-			self.owner.content = BoardScreen(self.owner, Player("BLUE"))
+
+		if not self.load_thread.is_alive():
+			self.load_thread.join()
+			self.player.start()
+			self.owner.content = BoardScreen(self.owner, self.player)			
+
+	def __load(self):
+		self.player = Player()
 
 
 class MenuScreen(Viewer):
