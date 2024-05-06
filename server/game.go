@@ -245,7 +245,7 @@ func (b *Board) play(boardChannel chan []byte) {
 		b.print()
 		b.nextTick()
 		b.nextPlayersData()
-		time.Sleep(time.Second)
+		time.Sleep(time.Millisecond * 125)
 
 		jsonBoard, err := json.Marshal(b)
 		if err != nil {
