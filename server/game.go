@@ -75,21 +75,19 @@ func (b *Board) playerWithUUID(uuid uuid.UUID) *Player {
 }
 
 
-func newClientUpdate(b *Board, uuid uuid.UUID) *ClientUpdate {
-	update := new(ClientUpdate)
+func updateClientUpdate(b *Board, update *ClientUpdate, uuid uuid.UUID) {
 	update.Width = b.Width
 	update.Height = b.Height
 	update.Content = b.Content
 
 	var player = b.playerWithUUID(uuid);
 	if (player == nil) {
-		return nil
+		return
 	}
 
 	update.Score = player.Score
 	update.CellsCount = player.CellsCount
 	update.Color = player.Color
-	return update
 }
 
 type Cell struct {
@@ -97,19 +95,15 @@ type Cell struct {
 	Y int `json:"Y"`
 }
 
-func (b *Board) assertIfOutofBounds(cell Cell) error {
+func (b *Board) checkIfOutofBounds(cell Cell) error {
 	if !b.cellIsInBounds(cell) {
-		log.Fatalf("Error: Program stopped: (Cell out of bounds %d %d)", cell.X, cell.Y)
+		log.Printf("Error: (Cell out of bounds %d %d)", cell.X, cell.Y)
 		return errors.New("Cell out of bounds")
 	}
 	return nil
 }
 
 func (b *Board) setCellsToColor(cells []Cell, uuid uuid.UUID) error {
-
-	// TODO: 1) Add cells validation (now you can overwrite other player's cells)
-	// TODO: 2) assertOutOfBounds should return an error and stop function before setting anything
-
 	currentPlayer := b.playerWithUUID(uuid)
 	if (currentPlayer == nil) {
 		return errors.New("Player not found");
@@ -126,12 +120,12 @@ func (b *Board) setCellsToColor(cells []Cell, uuid uuid.UUID) error {
 	defer b.mutex.Unlock()
 
 	for _, cell := range cells {
-		err := b.assertIfOutofBounds(cell)
+		err := b.checkIfOutofBounds(cell)
 		if (err != nil) {
 			return err
 		}
 		if (b.Content[cell.Y][cell.X] != Black) {
-			log.Fatalf("Error: Cell to set is occupied: X:%d Y:%d", cell.X, cell.Y)
+			log.Printf("Error: Cell to set is occupied: X:%d Y:%d", cell.X, cell.Y)
 			return errors.New("Cell to set is occupied")
 		}
 	}
@@ -160,7 +154,7 @@ func (b *Board) cellIsInBounds(cell Cell) bool {
 }
 
 func (b *Board) colorOfCell(cell Cell) Color {
-	err := b.assertIfOutofBounds(cell)
+	err := b.checkIfOutofBounds(cell)
 	if (err != nil) {
 		return 0
 	}
@@ -168,7 +162,7 @@ func (b *Board) colorOfCell(cell Cell) Color {
 }
 
 func (b *Board) futureColorOfCell(cell Cell) Color {
-	err := b.assertIfOutofBounds(cell)
+	err := b.checkIfOutofBounds(cell)
 	if (err != nil) {
 		return 0
 	}
@@ -241,17 +235,17 @@ func (b *Board) nextTick() {
 
 func (b *Board) play(boardChannel chan []byte) {
 	for {
-
 		b.print()
 		b.nextTick()
 		b.nextPlayersData()
-		time.Sleep(time.Millisecond * 125)
 
 		jsonBoard, err := json.Marshal(b)
 		if err != nil {
 			fmt.Println("Error:", err)
 		}
 		boardChannel <- jsonBoard
+		fmt.Println(string(jsonBoard))
+		time.Sleep(time.Millisecond * 125)
 
 	}
 }
