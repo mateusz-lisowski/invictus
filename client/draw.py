@@ -12,6 +12,7 @@ def drawBorder(scr, y, x, height, width, attrib):
 
 class Viewer:
 	def __init__(self, owner, height = 1, width = 1):
+		curses.nocbreak()
 		self.scr = curses.newpad(height, width)
 		self.owner = owner
 		self.width = width
@@ -62,3 +63,26 @@ class Menu:
 	def handleInput(self, ch):
 		if self.content != None:
 			self.content.handleInput(ch)
+
+
+class MessageScreen(Viewer):
+	def __init__(self, owner, message, nextContent = None):
+		self.message = message
+		self.nextContent = nextContent
+
+		y = 0
+		x = 0
+		for line in self.message.split('\n'):
+			x = max(x, len(line))
+			y += 1
+		super().__init__(owner, y, x + 1)
+
+	def draw(self):
+		self.scr.clear()
+		self.scr.addstr(0, 0, self.message, curses.A_BOLD)
+
+	def handleInput(self, _):
+		if self.nextContent == None:
+			self.owner.content = None
+		else:
+			self.owner.content = self.nextContent(self.owner)

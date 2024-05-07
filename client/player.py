@@ -10,25 +10,32 @@ class Player:
         self.__login()
         self.ws = create_connection(f"ws://{serverAddr}/game")
         self.ws2 = create_connection(f"ws://{serverAddr}/play")
+        result = self.ws.recv()
         result = json.loads(self.ws.recv())
         self.__updateBoard(result)
         self.__updateCells(result)
+        self.disconnected = False
 
     def start(self):
-        t = threading.Thread(target=self.__update)
-        t.start()
+        self.update_thread = threading.Thread(target=self.__update)
+        self.update_thread.start()
 
     def sendMove(self, moves):
         output_list = [{"X": x, "Y": y} for x, y in moves]
-        self.ws2.send(json.dumps({"cells": output_list, "uuid": self.uuid}))
+        try:
+            self.ws2.send(json.dumps({"cells": output_list, "uuid": self.uuid}))
+        except:
+            self.disconnected = True
 
     def __update(self):
-        while True:
-            result = self.ws.recv()
-            result = json.loads(self.ws.recv())
-            self.__updateScores(result)
-            self.__updateBoard(result)
-            self.__updateCells(result)
+        try:
+            while True:
+                result = json.loads(self.ws.recv())
+                self.__updateScores(result)
+                self.__updateBoard(result)
+                self.__updateCells(result)
+        except:
+            self.disconnected = True
 
     def __login(self):
         response = requests.get(f"http://{serverAddr}/register")

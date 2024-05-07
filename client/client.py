@@ -3,6 +3,7 @@ from color import *
 from draw import *
 from player import *
 import threading
+import os
 
 invictus_string = '''
   _____            _      _             
@@ -14,6 +15,10 @@ invictus_string = '''
                                         
 '''
 
+class MainScreen(MessageScreen):
+	def __init__(self, owner):
+		super().__init__(owner, invictus_string, LoadingScreen)
+
 
 class LoadingScreen(Viewer):
 	def __init__(self, owner):
@@ -22,6 +27,7 @@ class LoadingScreen(Viewer):
 
 		curses.halfdelay(5)
 
+		self.player = None
 		self.load_thread = threading.Thread(target=self.__load)
 		self.load_thread.start()
 
@@ -35,39 +41,27 @@ class LoadingScreen(Viewer):
 
 		if not self.load_thread.is_alive():
 			self.load_thread.join()
-			self.player.start()
-			self.owner.content = BoardScreen(self.owner, self.player)			
+			if self.player == None:
+				self.owner.content = MessageScreen(self.owner, "Failed to connect to the server")
+			else:
+				self.player.start()
+				self.owner.content = BoardScreen(self.owner, self.player)			
 
 	def __load(self):
-		self.player = Player()
-
-
-class MenuScreen(Viewer):
-	def __init__(self, owner):
-		y = 0
-		x = 0
-		for line in invictus_string.split('\n'):
-			x = max(x, len(line))
-			y += 1
-		super().__init__(owner, y, x + 1)
-
-	def draw(self):
-		self.scr.clear()
-		self.scr.addstr(0, 0, invictus_string, curses.A_BOLD)
-
-	def handleInput(self, _):
-		self.owner.content = LoadingScreen(self.owner)
-	
-
+		try:
+			self.player = Player()
+		except:
+			pass
 
 def main(stdscr):
 	Color.init()
 	curses.curs_set(0)
 
 	menu = Menu(stdscr)
-	menu.content = MenuScreen(menu)
-	menu.draw()
+
 	while not menu.closed:
+		if menu.content == None:
+			menu.content = MainScreen(menu)
 		menu.draw()
 		ch = stdscr.getch()
 		if ch == curses.KEY_RESIZE:
@@ -78,4 +72,7 @@ def main(stdscr):
 
 
 if __name__ == '__main__':
-	curses.wrapper(main)
+	try:
+		curses.wrapper(main)
+	except:
+		os._exit(1)

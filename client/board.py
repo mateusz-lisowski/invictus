@@ -41,6 +41,9 @@ class BoardScreen(Viewer):
 
 
 	def handleInput(self, ch):
+		if self.player.disconnected:
+			self.owner.content = MessageScreen(self.owner, "Disconnected from the server")
+
 		move_x = 0
 		move_y = 0
 
