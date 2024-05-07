@@ -44,7 +44,6 @@ class Menu:
 	def __init__(self, stdscr):
 		self.stdscr = stdscr
 		self.content = None
-		self.closed = False
 		self.updateSize()
 
 	def updateSize(self):

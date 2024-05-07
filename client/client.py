@@ -43,6 +43,8 @@ class LoadingScreen(Viewer):
 			self.load_thread.join()
 			if self.player == None:
 				self.owner.content = MessageScreen(self.owner, "Failed to connect to the server")
+			elif self.player.id == 0:
+				self.owner.content = MessageScreen(self.owner, "Game is full")
 			else:
 				self.player.start()
 				self.owner.content = BoardScreen(self.owner, self.player)			
@@ -59,7 +61,7 @@ def main(stdscr):
 
 	menu = Menu(stdscr)
 
-	while not menu.closed:
+	while True:
 		if menu.content == None:
 			menu.content = MainScreen(menu)
 		menu.draw()

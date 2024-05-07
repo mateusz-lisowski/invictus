@@ -49,7 +49,6 @@ class BoardScreen(Viewer):
 
 		if ch == ord('q'):
 			self.owner.content = None
-			self.owner.closed = True
 		elif ch == ord(' '):
 			target = (self.cursor_x, self.cursor_y)
 			if target in self.selected:

@@ -8,7 +8,9 @@ serverAddr = "localhost:8080"
 class Player:
     def __init__(self):
         self.__login()
-        self.ws = create_connection(f"ws://{serverAddr}/game")
+        if self.id == 0:
+            return
+        self.ws = create_connection(f"ws://{serverAddr}/game{self.id}")
         self.ws2 = create_connection(f"ws://{serverAddr}/play")
         result = self.ws.recv()
         result = json.loads(self.ws.recv())
@@ -41,6 +43,7 @@ class Player:
         response = requests.get(f"http://{serverAddr}/register")
         self.color = response.json()["color"]
         self.uuid = response.json()["uuid"]
+        self.id = response.json()["id"]
 
     def __updateBoard(self, response):
         self.board = response['board']
