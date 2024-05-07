@@ -3,15 +3,15 @@ from websocket import create_connection
 import requests
 import threading
 
-serverAddr = "localhost:8080"
+from config import *
 
 class Player:
     def __init__(self):
         self.__login()
         if self.id == 0:
             return
-        self.ws = create_connection(f"ws://{serverAddr}/game{self.id}")
-        self.ws2 = create_connection(f"ws://{serverAddr}/play")
+        self.ws = create_connection(f"ws://{serverIp()}:{serverPort()}/game{self.id}")
+        self.ws2 = create_connection(f"ws://{serverIp()}:{serverPort}/play")
         result = self.ws.recv()
         result = json.loads(self.ws.recv())
         self.__updateBoard(result)
@@ -40,7 +40,7 @@ class Player:
             self.disconnected = True
 
     def __login(self):
-        response = requests.get(f"http://{serverAddr}/register")
+        response = requests.get(f"http://{serverIp()}:{serverPort()}/register")
         self.color = response.json()["color"]
         self.uuid = response.json()["uuid"]
         self.id = response.json()["id"]
