@@ -242,18 +242,17 @@ func (b *Board) marshalBoard()  ([]byte) {
 }
 
 func (b *Board) play(boardChannel chan []byte) {
-	jsonBoard := b.marshalBoard()
-	boardChannel <- jsonBoard
+	
 	for {
-		jsonBoard = b.marshalBoard()
-		boardChannel <- jsonBoard
-
 		b.print()
 		b.nextTick()
 		b.nextPlayersData()
 
-		jsonBoard = b.marshalBoard()
-		boardChannel <- jsonBoard
+		jsonBoard := b.marshalBoard()
+
+		for i := 0 ; i < len(b.Players); i += 1 {
+			boardChannel <- jsonBoard
+		}
 
 		fmt.Println(string(jsonBoard))
 		time.Sleep(time.Millisecond * 250)
@@ -271,7 +270,7 @@ func (b *Board) setCellsFromChannel(cellSet chan CellSet) {
 	}
 }
 
-func (b *Board) getFreeColor(uuid uuid.UUID) (Color, error) {
+func (b *Board) getFreeColor(uuid uuid.UUID) (Color, int, error) {
 
 	possibleColors := []Color{Blue, Green, Cyan, Red, Magenta, Yellow}
 
@@ -288,10 +287,10 @@ func (b *Board) getFreeColor(uuid uuid.UUID) (Color, error) {
 	if len(possibleColors) >= 1 {
 		choosenColor := possibleColors[0]
 		b.Players = append(b.Players, Player{Color: choosenColor, CellsCount: 0, Score: 0, UUID: uuid})
-		return choosenColor, nil
+		return choosenColor, 7 - len(possibleColors), nil
 	}
 
-	return 0, errors.New("no free colors aviable")
+	return 0, 0, errors.New("no free colors aviable")
 }
 
 func (b *Board) nextPlayersData() {

@@ -33,14 +33,15 @@ func newServer(b *Board) *Server {
 
 func (s *Server) handleRegister(w http.ResponseWriter, r *http.Request) {
 	uuid := uuid.New()
-	freeColor, err := s.board.getFreeColor(uuid)
+	freeColor, index, err := s.board.getFreeColor(uuid)
 	if err != nil {
 		fmt.Println(err)
 	}
 	
 	data := map[string]interface{}{
 		"color":    freeColor,
-		"uuid":   uuid.String(),
+		"id": 		index,
+		"uuid":   	uuid.String(),
 	}
 
 	jsonData, err := json.Marshal(data)
@@ -53,6 +54,7 @@ func (s *Server) handleBoard(ws *websocket.Conn) {
 		if !ok {
 			fmt.Println("Something went wrong while reading from the channel")
 		}
+
 		ws.Write(data)
 	}
 }
@@ -70,7 +72,7 @@ func (s *Server) readPump(ws *websocket.Conn) {
 			if err == io.EOF {
 				break
 			}
-			fmt.Println("Error while reading from ws: ", err)
+			// fmt.Println("Error while reading from ws: ", err)
 			continue
 		}
 
@@ -89,7 +91,7 @@ func (s *Server) readPump(ws *websocket.Conn) {
 
 func main() {
 
-	board := newBoard(16, 16)
+	board := newBoard(256, 144)
 	server := newServer(board)
 
 	mux := http.NewServeMux()
@@ -97,8 +99,15 @@ func main() {
 	go board.play(server.gameChannel)
 	go board.setCellsFromChannel(server.cellSetChannel)
 
+	
 	mux.Handle("/play", websocket.Handler(server.handlePlay))
-	mux.Handle("/game", websocket.Handler(server.handleBoard))
+	
+	mux.Handle("/game1", websocket.Handler(server.handleBoard))
+	mux.Handle("/game2", websocket.Handler(server.handleBoard))
+	mux.Handle("/game3", websocket.Handler(server.handleBoard))
+	mux.Handle("/game4", websocket.Handler(server.handleBoard))
+	mux.Handle("/game5", websocket.Handler(server.handleBoard))
+	mux.Handle("/game6", websocket.Handler(server.handleBoard))
 
 	mux.HandleFunc("GET /register", server.handleRegister)
 
