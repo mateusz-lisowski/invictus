@@ -11,7 +11,7 @@ class Player:
         if self.id == 0:
             return
         self.ws = create_connection(f"ws://{serverIp()}:{serverPort()}/game{self.id}")
-        self.ws2 = create_connection(f"ws://{serverIp()}:{serverPort}/play")
+        self.ws2 = create_connection(f"ws://{serverIp()}:{serverPort()}/play")
         result = self.ws.recv()
         result = json.loads(self.ws.recv())
         self.__updateBoard(result)
