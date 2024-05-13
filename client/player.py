@@ -47,8 +47,8 @@ class Player:
 
     def __updateBoard(self, response):
         self.board = response['board']
-        self.board_width = len(self.board)
-        self.board_height = len(self.board[0])
+        self.board_width = len(self.board[0])
+        self.board_height = len(self.board)
 
     def __updateCells(self, response):
         self.cells = response['players'][0]['cells']
