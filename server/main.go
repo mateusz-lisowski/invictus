@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"os"
+	"strconv"
 
 	"golang.org/x/net/websocket"
 	"github.com/google/uuid"
@@ -89,9 +91,42 @@ func (s *Server) readPump(ws *websocket.Conn) {
 	}
 }
 
-func main() {
+func getBoardSize() (int, int) {
+	
+	var args = os.Args[1:]
+	if len(args) >= 2 {
+		var boardWidth, errWidth = strconv.Atoi(args[0])
+		var boardHeight, errHeight = strconv.Atoi(args[1])
 
-	board := newBoard(256, 144)
+		if errWidth == nil && errHeight == nil {
+			if boardWidth > 0 && boardHeight > 0 {
+				return boardWidth, boardHeight
+			}
+		}
+	}
+
+	var boardWidth, boardHeight int
+	
+	for true {
+		fmt.Print("Enter board width: ")
+		fmt.Scan(&boardWidth)
+		fmt.Print("Enter board height: ")
+		fmt.Scan(&boardHeight)
+
+		if boardWidth > 0 && boardHeight > 0 {
+			break
+		}
+
+		fmt.Println("Invalid board size!\n")
+	}
+
+	return boardWidth, boardHeight
+}
+
+func main() {
+	var boardWidth, boardHeight = getBoardSize()
+
+	board := newBoard(boardHeight, boardWidth)
 	server := newServer(board)
 
 	mux := http.NewServeMux()

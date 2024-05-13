@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -138,12 +139,16 @@ func (b *Board) setCellsToColor(cells []Cell, uuid uuid.UUID) error {
 }
 
 func (b *Board) print() {
+	var buffer bytes.Buffer
+
+	buffer.WriteString(fmt.Sprintf("\nWidth = %d, Height = %d\n", b.Width, b.Height))
 	for _, row := range b.Content {
 		for _, cell := range row {
-			fmt.Print(cell, " ")
+			buffer.WriteString(fmt.Sprint(cell, ""))
 		}
-		fmt.Println()
+		buffer.WriteString(fmt.Sprintln())
 	}
+	fmt.Print(buffer.String())
 }
 
 func (b *Board) cellIsInBounds(cell Cell) bool {
@@ -254,7 +259,6 @@ func (b *Board) play(boardChannel chan []byte) {
 			boardChannel <- jsonBoard
 		}
 
-		fmt.Println(string(jsonBoard))
 		time.Sleep(time.Millisecond * 250)
 
 	}
