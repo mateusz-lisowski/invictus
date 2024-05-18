@@ -62,7 +62,7 @@ class BoardScreen(Viewer):
 			target = (self.cursor_x, self.cursor_y)
 			if target in self.selected:
 				self.selected.remove(target)
-			else:
+			elif self.player.cells > len(self.selected):
 				self.selected.append(target)
 		elif ch == ord('\n'):
 			if len(self.selected) != 0:

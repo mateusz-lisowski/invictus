@@ -248,10 +248,12 @@ func (b *Board) marshalBoard()  ([]byte) {
 
 func (b *Board) play(boardChannel chan []byte) {
 	
+	var frame = 0
+
 	for {
 		b.print()
 		b.nextTick()
-		b.nextPlayersData()
+		b.nextPlayersData(frame % 6 == 0)
 
 		jsonBoard := b.marshalBoard()
 
@@ -260,6 +262,7 @@ func (b *Board) play(boardChannel chan []byte) {
 		}
 
 		time.Sleep(time.Millisecond * 250)
+		frame += 1
 
 	}
 }
@@ -297,9 +300,11 @@ func (b *Board) getFreeColor(uuid uuid.UUID) (Color, int, error) {
 	return 0, 0, errors.New("no free colors aviable")
 }
 
-func (b *Board) nextPlayersData() {
+func (b *Board) nextPlayersData(addCell bool) {
 	for index := range b.Players {
-		b.Players[index].CellsCount += 1
+		if addCell {
+			b.Players[index].CellsCount += 1
+		}
 		b.Players[index].Score = 0
 		for _, row := range b.Content {
 			for _, cell := range row {
