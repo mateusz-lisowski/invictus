@@ -52,7 +52,7 @@ class Player:
         self.board_height = len(self.board)
 
     def __updateCells(self, response):
-        self.cells = response['players'][0]['cells']
+        self.cells = response['players'][self.color - 1]['cells']
 
     def __updateScores(self, response):
         self.scores = []
