@@ -1,4 +1,5 @@
 import threading
+import traceback
 import os
 
 from board import *
@@ -72,7 +73,7 @@ class ServerIpScreen(Viewer):
 
 	def draw(self):
 		self.scr.clear()
-		drawBorder(self.scr, 0, 0, self.height, self.width // 2, curses.color_pair(0))
+		drawBorder(self.scr, 0, 0, self.height, self.width // 2)
 
 		ips = serverIp().split('.')
 		self.scr.addstr(1, 2, f" IP: {ips[0]:>3}.{ips[1]:>3}.{ips[2]:>3}.{ips[3]:>3} ")
@@ -145,4 +146,7 @@ if __name__ == '__main__':
 	try:
 		curses.wrapper(main)
 	except KeyboardInterrupt:
+		os._exit(1)
+	except:
+		print(traceback.format_exc())
 		os._exit(1)

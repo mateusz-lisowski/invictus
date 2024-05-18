@@ -14,6 +14,7 @@ class Player:
         self.ws2 = create_connection(f"ws://{serverIp()}:{serverPort()}/play")
         result = self.ws.recv()
         result = json.loads(self.ws.recv())
+        self.__updateScores(result)
         self.__updateBoard(result)
         self.__updateCells(result)
         self.disconnected = False
@@ -54,4 +55,6 @@ class Player:
         self.cells = response['players'][0]['cells']
 
     def __updateScores(self, response):
-        self.scores = response['players'][0]['score']
+        self.scores = []
+        for player in response['players']:
+            self.scores.append((player['color'], player['score']))

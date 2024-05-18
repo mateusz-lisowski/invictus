@@ -1,13 +1,31 @@
 import curses
+import time
 
-def drawBorder(scr, y, x, height, width, attrib):
+def drawBorder(scr, y, x, height, width, attrib = None):
+	if attrib == None:
+		attrib = curses.color_pair(0)
+
 	for i in range(1, width - 1):
 		scr.addstr(y, x + 2 * i, "▄▄", attrib)
-		scr.addstr(y + height - 1, x + 2 * i, "▀▀", attrib)
+		scr.addstr(y + height - 1, x + 2 * i, "▀▀")
 
 	for i in range(1, height - 1):
 		scr.addstr(y + i, x, " █", attrib)
-		scr.addstr(y + i, x + 2 * (width - 1), "█ ", attrib)
+		scr.addstr(y + i, x + 2 * (width - 1), "█ ")
+
+def fill(scr, y, x, height, width, attrib = None):
+	for i in range(0, width):
+		for j in range(0, height):
+			scr.addstr(y + j, x + 2 * i, "██", curses.color_pair(0) if attrib == None else attrib)
+
+def drawStrings(scr, y, x, max_len, strings):
+	for [string, attrib] in strings:
+		if max_len <= 0:
+			return
+		scr.addnstr(y, x, string, max_len, curses.color_pair(0) if attrib == None else attrib)
+		string_len = len(string)
+		max_len -= string_len
+		x += string_len
 
 
 class Viewer:
@@ -15,10 +33,12 @@ class Viewer:
 		curses.nocbreak()
 		self.scr = curses.newpad(height, width)
 		self.owner = owner
+		self.owner.overlay = None
 		self.width = width
 		self.height = height
 		self.offset_x = 0
 		self.offset_y = 0
+		self.owner.refresh()
 
 	def resize(self, height, width):
 		self.scr.resize(height, width)
@@ -44,24 +64,34 @@ class Menu:
 	def __init__(self, stdscr):
 		self.stdscr = stdscr
 		self.content = None
+		self.overlay = None
 		self.updateSize()
 
 	def updateSize(self):
 		max_y, max_x = self.stdscr.getmaxyx()
 		self.width = max_x
 		self.height = max_y
+		self.refresh()
 
 	def draw(self):
-		self.stdscr.clear()
-		drawBorder(self.stdscr, 0, 0, self.height, self.width // 2, curses.color_pair(0))
-		self.stdscr.refresh()
 		if self.content != None:
 			self.content.draw()
+			if self.overlay != None:
+				self.overlay.draw()
+
+		if self.content != None:
 			self.content.refresh(1, 2, self.height - 2, self.width // 2 * 2 - 3)
+			if self.overlay != None:
+				self.overlay.refresh(1, 2, self.height - 2, self.width // 2 * 2 - 3)
 
 	def handleInput(self, ch):
 		if self.content != None:
 			self.content.handleInput(ch)
+
+	def refresh(self):
+		self.stdscr.clear()
+		drawBorder(self.stdscr, 0, 0, self.height, self.width // 2)
+		self.stdscr.refresh()
 
 
 class MessageScreen(Viewer):
