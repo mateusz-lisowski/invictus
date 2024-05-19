@@ -1,1 +1,3 @@
 .null-ls*
+__pycache__
+.venv
