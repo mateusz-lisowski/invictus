@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -138,12 +139,16 @@ func (b *Board) setCellsToColor(cells []Cell, uuid uuid.UUID) error {
 }
 
 func (b *Board) print() {
+	var buffer bytes.Buffer
+
+	buffer.WriteString(fmt.Sprintf("\nWidth = %d, Height = %d\n", b.Width, b.Height))
 	for _, row := range b.Content {
 		for _, cell := range row {
-			fmt.Print(cell, " ")
+			buffer.WriteString(fmt.Sprint(cell, ""))
 		}
-		fmt.Println()
+		buffer.WriteString(fmt.Sprintln())
 	}
+	fmt.Print(buffer.String())
 }
 
 func (b *Board) cellIsInBounds(cell Cell) bool {
@@ -233,19 +238,31 @@ func (b *Board) nextTick() {
 	b.Content = newContent
 }
 
+func (b *Board) marshalBoard()  ([]byte) {
+	jsonBoard, err := json.Marshal(b)
+	if err != nil {
+		fmt.Println("Error:", err)
+	}
+	return jsonBoard
+}
+
 func (b *Board) play(boardChannel chan []byte) {
+	
+	var frame = 0
+
 	for {
 		b.print()
 		b.nextTick()
-		b.nextPlayersData()
+		b.nextPlayersData(frame % 6 == 0)
 
-		jsonBoard, err := json.Marshal(b)
-		if err != nil {
-			fmt.Println("Error:", err)
+		jsonBoard := b.marshalBoard()
+
+		for i := 0 ; i < len(b.Players); i += 1 {
+			boardChannel <- jsonBoard
 		}
-		boardChannel <- jsonBoard
-		fmt.Println(string(jsonBoard))
-		time.Sleep(time.Millisecond * 125)
+
+		time.Sleep(time.Millisecond * 250)
+		frame += 1
 
 	}
 }
@@ -260,7 +277,7 @@ func (b *Board) setCellsFromChannel(cellSet chan CellSet) {
 	}
 }
 
-func (b *Board) getFreeColor(uuid uuid.UUID) (Color, error) {
+func (b *Board) getFreeColor(uuid uuid.UUID) (Color, int, error) {
 
 	possibleColors := []Color{Blue, Green, Cyan, Red, Magenta, Yellow}
 
@@ -277,15 +294,17 @@ func (b *Board) getFreeColor(uuid uuid.UUID) (Color, error) {
 	if len(possibleColors) >= 1 {
 		choosenColor := possibleColors[0]
 		b.Players = append(b.Players, Player{Color: choosenColor, CellsCount: 0, Score: 0, UUID: uuid})
-		return choosenColor, nil
+		return choosenColor, 7 - len(possibleColors), nil
 	}
 
-	return 0, errors.New("no free colors aviable")
+	return 0, 0, errors.New("no free colors aviable")
 }
 
-func (b *Board) nextPlayersData() {
+func (b *Board) nextPlayersData(addCell bool) {
 	for index := range b.Players {
-		b.Players[index].CellsCount += 1
+		if addCell {
+			b.Players[index].CellsCount += 1
+		}
 		b.Players[index].Score = 0
 		for _, row := range b.Content {
 			for _, cell := range row {

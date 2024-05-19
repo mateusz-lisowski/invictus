@@ -1,48 +1,60 @@
 import json
-from data import *
+from websocket import create_connection
+import requests
+import threading
+
+from config import *
 
 class Player:
-    def __init__(self, color):
-        self.__login(color)
-        self.scores = None
+    def __init__(self):
+        self.__login()
+        if self.id == 0:
+            return
+        self.ws = create_connection(f"ws://{serverIp()}:{serverPort()}/game{self.id}")
+        self.ws2 = create_connection(f"ws://{serverIp()}:{serverPort()}/play")
+        result = self.ws.recv()
+        result = json.loads(self.ws.recv())
+        self.__updateScores(result)
+        self.__updateBoard(result)
+        self.__updateCells(result)
+        self.disconnected = False
 
-    def logout(self):
-        response = self.__sendRequest("", {"uuid": self.uuid})
-        return response['success']
-
-    def update(self):
-        self.__updateScores()
-        self.__updateBoard()
-        self.__updateCells()
+    def start(self):
+        self.update_thread = threading.Thread(target=self.__update)
+        self.update_thread.start()
 
     def sendMove(self, moves):
-        response = self.__sendRequest("", {"board": moves, "uuid": self.uuid})
-        return response['success']
+        output_list = [{"X": x, "Y": y} for x, y in moves]
+        try:
+            self.ws2.send(json.dumps({"cells": output_list, "uuid": self.uuid}))
+        except:
+            self.disconnected = True
 
-    def __login(self, color):
-        response = self.__sendRequest("", {"color": color})
-        self.uuid = response['uuid']
-        self.color = response['color']
-        self.__updateBoard()
-        self.__updateCells()
+    def __update(self):
+        try:
+            while True:
+                result = json.loads(self.ws.recv())
+                self.__updateScores(result)
+                self.__updateBoard(result)
+                self.__updateCells(result)
+        except:
+            self.disconnected = True
 
-    def __updateBoard(self):
-        response = self.__sendRequest("", {"uuid": self.uuid})
+    def __login(self):
+        response = requests.get(f"http://{serverIp()}:{serverPort()}/register")
+        self.color = response.json()["color"]
+        self.uuid = response.json()["uuid"]
+        self.id = response.json()["id"]
+
+    def __updateBoard(self, response):
         self.board = response['board']
-        self.board_width = response['width']
-        self.board_height = response['height']
+        self.board_width = len(self.board[0])
+        self.board_height = len(self.board)
 
-    def __updateCells(self):
-        response = self.__sendRequest("", {"uuid": self.uuid})
-        self.cells = response['cells']
+    def __updateCells(self, response):
+        self.cells = response['players'][self.color - 1]['cells']
 
-    def __updateScores(self):
-        response = self.__sendRequest("", {"uuid": self.uuid})
-        self.scores = response['scores']
-
-    def __sendRequest(self, url, data):
-        #x = requests.post(url, json=data)
-        file = open(data_path("data.json"))
-        x = json.load(file)
-        return x
-
+    def __updateScores(self, response):
+        self.scores = []
+        for player in response['players']:
+            self.scores.append((player['color'], player['score']))
