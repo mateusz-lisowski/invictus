@@ -15,4 +15,6 @@ You can achive this task by creating forms found in Game of Life, such as:
 Thanks to this forms, you can also destroy your enemies by denying them space
 for their own organism.
 
+## Game look
+
 **Be smart and conquere all the world !**
