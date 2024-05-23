@@ -17,4 +17,13 @@ for their own organism.
 
 ## Game look
 
-**Be smart and conquere all the world !**
+![Zrzut ekranu 2024-05-24 001633](https://github.com/mateusz-lisowski/invictus/assets/107402915/9635249d-a5e4-46ba-b73e-74dc602b5838)
+![Zrzut ekranu 2024-05-24 001848](https://github.com/mateusz-lisowski/invictus/assets/107402915/b2416ad2-d5a2-4034-91d5-89b332eaccc9)
+![Zrzut ekranu 2024-05-24 001154](https://github.com/mateusz-lisowski/invictus/assets/107402915/551991f8-cc6a-4d99-9a6c-6f0bd17a2e0b)
+
+---
+
+**Be smart and conquere all the world!**
+
+We wish you all the wins!  
+***Invictus team***
