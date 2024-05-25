@@ -15,6 +15,25 @@ You can achive this task by creating forms found in Game of Life, such as:
 Thanks to this forms, you can also destroy your enemies by denying them space
 for their own organism.
 
+## Instalation guide
+
+### Windows
+1. Clone the repository.
+2. Enter `server` directory and run executable file.
+3. Enter `client` directory and run client.exe file.
+4. Enter host IP and start playing.
+
+### Linux
+*You need to have python3 and go installed*
+1. Clone the repository.
+2. Enter `server` directory and run command `go run game.go main.go`.
+3. Enter `client` directory.
+4. Create virtual environment `python3 -m venv venv`.
+5. Activate virtual environment `source venv/bin/activate`.
+6. Install dependencies `pip install -r requirements.txt`.
+7. Run script `python3 client.py`
+   
+
 ## Game look
 
 ![Zrzut ekranu 2024-05-24 001633](https://github.com/mateusz-lisowski/invictus/assets/107402915/9635249d-a5e4-46ba-b73e-74dc602b5838)
